@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data.dart';
 
 const developerName = 'Joel Queiroz';
-const certSha256 = '97dbaa35 4f5c6792 96ebf0bb 2893bcdf 4f829505 8b333207 61277da9 eefa3be9';
+const certSha256 =
+    '97dbaa35 4f5c6792 96ebf0bb 2893bcdf 4f829505 8b333207 61277da9 eefa3be9';
 
 class Settings extends ChangeNotifier {
   ThemeMode mode = ThemeMode.system;
@@ -48,28 +51,36 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(listenable: settings, builder: (context, _) => MaterialApp(
-      title: 'O Livro dos Espíritos',
-      debugShowCheckedModeBanner: false,
-      themeMode: settings.mode,
-      theme: ThemeData(colorSchemeSeed: const Color(0xFF5B4B8A), useMaterial3: true),
-      darkTheme: ThemeData(
-          colorSchemeSeed: const Color(0xFF5B4B8A), brightness: Brightness.dark, useMaterial3: true),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(settings.fontScale)),
-        child: child!,
-      ),
-      home: FutureBuilder<Book>(
-        future: _book,
-        builder: (context, snap) {
-          if (snap.hasError) return Scaffold(body: Center(child: Text('${snap.error}')));
-          if (!snap.hasData) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          }
-          return CoverGate(book: snap.data!);
-        },
-      ),
-    ));
+    return ListenableBuilder(
+        listenable: settings,
+        builder: (context, _) => MaterialApp(
+              title: 'O Livro dos Espíritos',
+              debugShowCheckedModeBanner: false,
+              themeMode: settings.mode,
+              theme: ThemeData(
+                  colorSchemeSeed: const Color(0xFF5B4B8A), useMaterial3: true),
+              darkTheme: ThemeData(
+                  colorSchemeSeed: const Color(0xFF5B4B8A),
+                  brightness: Brightness.dark,
+                  useMaterial3: true),
+              builder: (context, child) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(settings.fontScale)),
+                child: child!,
+              ),
+              home: FutureBuilder<Book>(
+                future: _book,
+                builder: (context, snap) {
+                  if (snap.hasError)
+                    return Scaffold(body: Center(child: Text('${snap.error}')));
+                  if (!snap.hasData) {
+                    return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()));
+                  }
+                  return CoverGate(book: snap.data!);
+                },
+              ),
+            ));
   }
 }
 
@@ -80,55 +91,69 @@ void showSettings(BuildContext context) {
       listenable: settings,
       builder: (context, _) => Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Aparência', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.brightness_auto), label: Text('Auto')),
-              ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Dia')),
-              ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Noite')),
-            ],
-            selected: {settings.mode},
-            onSelectionChanged: (s) => settings.setMode(s.first),
-          ),
-          const SizedBox(height: 20),
-          Text('Tamanho da fonte (${(settings.fontScale * 100).round()}%)',
-              style: Theme.of(context).textTheme.titleMedium),
-          Row(children: [
-            const Text('A', style: TextStyle(fontSize: 12)),
-            Expanded(
-              child: Slider(
-                value: settings.fontScale,
-                min: 0.8,
-                max: 2.0,
-                divisions: 12,
-                onChanged: settings.setFont,
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Aparência', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                      value: ThemeMode.system,
+                      icon: Icon(Icons.brightness_auto),
+                      label: Text('Auto')),
+                  ButtonSegment(
+                      value: ThemeMode.light,
+                      icon: Icon(Icons.light_mode),
+                      label: Text('Dia')),
+                  ButtonSegment(
+                      value: ThemeMode.dark,
+                      icon: Icon(Icons.dark_mode),
+                      label: Text('Noite')),
+                ],
+                selected: {settings.mode},
+                onSelectionChanged: (s) => settings.setMode(s.first),
               ),
-            ),
-            const Text('A', style: TextStyle(fontSize: 24)),
-          ]),
-          const Divider(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Sobre'),
-            onTap: () => showAboutDialog(
-              context: context,
-              applicationName: 'O Livro dos Espíritos',
-              applicationVersion: '1.0.1',
-              applicationLegalese: 'Desenvolvido por $developerName',
-              children: const [
-                SizedBox(height: 12),
-                SelectableText('GitHub: github.com/queirozsume/kardecEspiritos'),
-                SizedBox(height: 8),
-                SelectableText('SHA-256 do certificado:\n$certSha256'),
-                SizedBox(height: 8),
-                Text('Retrato: Bibliothèque nationale de France, domínio público.'),
-              ],
-            ),
-          ),
-        ]),
+              const SizedBox(height: 20),
+              Text('Tamanho da fonte (${(settings.fontScale * 100).round()}%)',
+                  style: Theme.of(context).textTheme.titleMedium),
+              Row(children: [
+                const Text('A', style: TextStyle(fontSize: 12)),
+                Expanded(
+                  child: Slider(
+                    value: settings.fontScale,
+                    min: 0.8,
+                    max: 2.0,
+                    divisions: 12,
+                    onChanged: settings.setFont,
+                  ),
+                ),
+                const Text('A', style: TextStyle(fontSize: 24)),
+              ]),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Sobre'),
+                onTap: () => showAboutDialog(
+                  context: context,
+                  applicationName: 'O Livro dos Espíritos',
+                  applicationVersion: '1.0.1',
+                  applicationLegalese: 'Desenvolvido por $developerName',
+                  children: const [
+                    SizedBox(height: 12),
+                    SelectableText(
+                        'GitHub: github.com/queirozsume/kardecEspiritos'),
+                    SizedBox(height: 8),
+                    SelectableText('SHA-256 do certificado:\n$certSha256'),
+                    SizedBox(height: 8),
+                    Text(
+                        'Retrato: Bibliothèque nationale de France, domínio público.'),
+                  ],
+                ),
+              ),
+            ]),
       ),
     ),
   );
@@ -139,25 +164,35 @@ void showSettings(BuildContext context) {
 void openQuestion(BuildContext c, Book b, int n) {
   final q = b.qByN[n];
   if (q == null) return;
-  Navigator.push(c, MaterialPageRoute(
-      builder: (_) => ChapterPage(book: b, chapterId: q['chapter'] as String, focus: n)));
+  Navigator.push(
+      c,
+      MaterialPageRoute(
+          builder: (_) => ChapterPage(
+              book: b, chapterId: q['chapter'] as String, focus: n)));
 }
 
 void openChapter(BuildContext c, Book b, String id, {String? theme}) {
-  Navigator.push(c, MaterialPageRoute(
-      builder: (_) => ChapterPage(book: b, chapterId: id, focusTheme: theme)));
+  Navigator.push(
+      c,
+      MaterialPageRoute(
+          builder: (_) =>
+              ChapterPage(book: b, chapterId: id, focusTheme: theme)));
 }
 
 void openSection(BuildContext c, Book b, String key, {String? label}) {
-  Navigator.push(c, MaterialPageRoute(
-      builder: (_) => SectionPage(book: b, sectionKey: key, focusLabel: label)));
+  Navigator.push(
+      c,
+      MaterialPageRoute(
+          builder: (_) =>
+              SectionPage(book: b, sectionKey: key, focusLabel: label)));
 }
 
 void scrollTo(GlobalKey? k) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     final ctx = k?.currentContext;
     if (ctx != null) {
-      Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 300), alignment: 0.05);
+      Scrollable.ensureVisible(ctx,
+          duration: const Duration(milliseconds: 300), alignment: 0.05);
     }
   });
 }
@@ -165,14 +200,19 @@ void scrollTo(GlobalKey? k) {
 Widget refChip(BuildContext context, Book b, List r) {
   switch (r[0]) {
     case 'q':
-      return ActionChip(label: Text('${r[2]}'), onPressed: () => openQuestion(context, b, r[1] as int));
+      return ActionChip(
+          label: Text('${r[2]}'),
+          onPressed: () => openQuestion(context, b, r[1] as int));
     case 'r':
-      return ActionChip(label: Text('${r[3]}'), onPressed: () => openQuestion(context, b, r[1] as int));
+      return ActionChip(
+          label: Text('${r[3]}'),
+          onPressed: () => openQuestion(context, b, r[1] as int));
     case 's':
       final lab = r[2] == '' ? '' : ' ${r[2]}';
       return ActionChip(
           label: Text('${sectionNames[r[1]]}$lab'),
-          onPressed: () => openSection(context, b, r[1] as String, label: r[2] == '' ? null : r[2] as String));
+          onPressed: () => openSection(context, b, r[1] as String,
+              label: r[2] == '' ? null : r[2] as String));
     default:
       return Chip(label: Text('${r[1]}'));
   }
@@ -203,25 +243,41 @@ class _CoverGateState extends State<CoverGate> {
             child: Column(children: [
               const SizedBox(height: 8),
               const Text('O LIVRO DOS',
-                  style: TextStyle(color: Color(0xFFE8D9A8), fontSize: 20, letterSpacing: 6)),
+                  style: TextStyle(
+                      color: Color(0xFFE8D9A8),
+                      fontSize: 20,
+                      letterSpacing: 6)),
               const Text('ESPÍRITOS',
                   style: TextStyle(
-                      color: Color(0xFFE8D9A8), fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: 4)),
+                      color: Color(0xFFE8D9A8),
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 4)),
               const SizedBox(height: 20),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFE8D9A8), width: 2),
-                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 16)],
+                    border:
+                        Border.all(color: const Color(0xFFE8D9A8), width: 2),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black54, blurRadius: 16)
+                    ],
                   ),
-                  child: Image.asset('assets/kardec.jpg', fit: BoxFit.cover, alignment: Alignment.topCenter, width: double.infinity),
+                  child: Image.asset('assets/kardec.jpg',
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      width: double.infinity),
                 ),
               ),
               const SizedBox(height: 20),
               const Text('Allan Kardec',
-                  style: TextStyle(color: Color(0xFFE8D9A8), fontSize: 22, fontStyle: FontStyle.italic)),
+                  style: TextStyle(
+                      color: Color(0xFFE8D9A8),
+                      fontSize: 22,
+                      fontStyle: FontStyle.italic)),
               const SizedBox(height: 12),
-              const Text('Toque para abrir', style: TextStyle(color: Colors.white54, fontSize: 13)),
+              const Text('Toque para abrir',
+                  style: TextStyle(color: Colors.white54, fontSize: 13)),
             ]),
           ),
         ),
@@ -306,7 +362,9 @@ class SectionsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(children: [
       for (final e in sectionNames.entries)
-        ListTile(title: Text(e.value), onTap: () => openSection(context, book, e.key)),
+        ListTile(
+            title: Text(e.value),
+            onTap: () => openSection(context, book, e.key)),
     ]);
   }
 }
@@ -340,7 +398,8 @@ class _SearchTabState extends State<SearchTab> {
         return [
           for (final x in b.searchQuestions(q))
             ListTile(
-              title: Text('${x['n']}. ${x['q']}', maxLines: 3, overflow: TextOverflow.ellipsis),
+              title: Text('${x['n']}. ${x['q']}',
+                  maxLines: 3, overflow: TextOverflow.ellipsis),
               subtitle: Text('${x['theme']}'.isEmpty
                   ? 'Capítulo ${x['chapter']}'
                   : 'Capítulo ${x['chapter']} · ${x['theme']}'),
@@ -351,9 +410,14 @@ class _SearchTabState extends State<SearchTab> {
         return [
           for (final h in b.searchTitles(q))
             ListTile(
-              title: Text(h.theme ?? 'Capítulo ${h.chapter['num']} – ${h.chapter['title']}'),
-              subtitle: h.theme == null ? null : Text('Capítulo ${h.chapter['num']} – ${h.chapter['title']}'),
-              onTap: () => openChapter(context, b, h.chapter['id'] as String, theme: h.theme),
+              title: Text(h.theme ??
+                  'Capítulo ${h.chapter['num']} – ${h.chapter['title']}'),
+              subtitle: h.theme == null
+                  ? null
+                  : Text(
+                      'Capítulo ${h.chapter['num']} – ${h.chapter['title']}'),
+              onTap: () => openChapter(context, b, h.chapter['id'] as String,
+                  theme: h.theme),
             ),
         ];
       default:
@@ -361,8 +425,10 @@ class _SearchTabState extends State<SearchTab> {
           for (final e in b.searchIndex(q))
             ListTile(
               title: Text('${e['term']}'),
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => EntryPage(book: b, entry: e))),
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => EntryPage(book: b, entry: e))),
             ),
         ];
     }
@@ -383,18 +449,24 @@ class _SearchTabState extends State<SearchTab> {
             border: const OutlineInputBorder(),
             suffixIcon: ctrl.text.isEmpty
                 ? null
-                : IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(ctrl.clear)),
+                : IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(ctrl.clear)),
           ),
         ),
       ),
       Wrap(spacing: 8, children: [
         for (var i = 0; i < scopes.length; i++)
-          ChoiceChip(label: Text(scopes[i]), selected: scope == i, onSelected: (_) => setState(() => scope = i)),
+          ChoiceChip(
+              label: Text(scopes[i]),
+              selected: scope == i,
+              onSelected: (_) => setState(() => scope = i)),
       ]),
       const SizedBox(height: 4),
       Expanded(
         child: res.isEmpty
-            ? Center(child: Text(ctrl.text.trim().isEmpty ? '' : 'Nenhum resultado'))
+            ? Center(
+                child: Text(ctrl.text.trim().isEmpty ? '' : 'Nenhum resultado'))
             : ListView(children: res),
       ),
     ]);
@@ -422,7 +494,9 @@ class _IndexTabState extends State<IndexTab> {
         child: TextField(
           onChanged: (v) => setState(() => q = v),
           decoration: const InputDecoration(
-              hintText: 'Filtrar índice', prefixIcon: Icon(Icons.filter_list), border: OutlineInputBorder()),
+              hintText: 'Filtrar índice',
+              prefixIcon: Icon(Icons.filter_list),
+              border: OutlineInputBorder()),
         ),
       ),
       Expanded(
@@ -430,8 +504,11 @@ class _IndexTabState extends State<IndexTab> {
           itemCount: list.length,
           itemBuilder: (_, i) => ListTile(
             title: Text('${list[i]['term']}'),
-            onTap: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => EntryPage(book: widget.book, entry: list[i]))),
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) =>
+                        EntryPage(book: widget.book, entry: list[i]))),
           ),
         ),
       ),
@@ -452,12 +529,15 @@ class EntryPage extends StatelessWidget {
       appBar: AppBar(title: Text('${entry['term']}')),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         if (refs.isNotEmpty)
-          Wrap(spacing: 8, children: [for (final r in refs) refChip(context, book, r)]),
+          Wrap(
+              spacing: 8,
+              children: [for (final r in refs) refChip(context, book, r)]),
         for (final s in subs) ...[
           const SizedBox(height: 16),
           Text('${s['label']}', style: Theme.of(context).textTheme.titleMedium),
           Wrap(spacing: 8, children: [
-            for (final r in (s['refs'] as List).cast<List>()) refChip(context, book, r),
+            for (final r in (s['refs'] as List).cast<List>())
+              refChip(context, book, r),
           ]),
         ],
       ]),
@@ -468,7 +548,12 @@ class EntryPage extends StatelessWidget {
 // ---------- capítulo ----------
 
 class ChapterPage extends StatefulWidget {
-  const ChapterPage({super.key, required this.book, required this.chapterId, this.focus, this.focusTheme});
+  const ChapterPage(
+      {super.key,
+      required this.book,
+      required this.chapterId,
+      this.focus,
+      this.focusTheme});
   final Book book;
   final String chapterId;
   final int? focus;
@@ -499,7 +584,8 @@ class _ChapterPageState extends State<ChapterPage> {
 
     final texts = ((ch['texts'] ?? []) as List)
         .cast<J>()
-        .where((t) => !((t['p'] as List).isNotEmpty && (t['p'] as List).first.toString().startsWith('•')))
+        .where((t) => !((t['p'] as List).isNotEmpty &&
+            (t['p'] as List).first.toString().startsWith('•')))
         .toList();
     // Textos livres entram depois da última pergunta com número <= 'after'.
     final buckets = <int, List<J>>{};
@@ -526,10 +612,15 @@ class _ChapterPageState extends State<ChapterPage> {
     void textBlock(J t) {
       theme(t['theme'] as String?);
       for (final p in (t['p'] as List)) {
-        items.add(Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text('$p', style: tt.bodyLarge?.copyWith(height: 1.5))));
+        items.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Text('$p', style: tt.bodyLarge?.copyWith(height: 1.5))));
       }
       for (final n in (t['notes'] as List)) {
-        items.add(Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text('$n', style: tt.bodySmall?.copyWith(fontStyle: FontStyle.italic))));
+        items.add(Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text('$n',
+                style: tt.bodySmall?.copyWith(fontStyle: FontStyle.italic))));
       }
     }
 
@@ -537,20 +628,27 @@ class _ChapterPageState extends State<ChapterPage> {
     for (var i = 0; i < qs.length; i++) {
       final q = qs[i];
       theme(q['theme'] as String?);
-      items.add(QuestionCard(key: key('q${q['n']}'), q: q, highlight: q['n'] == widget.focus));
+      items.add(QuestionCard(
+          key: key('q${q['n']}'), q: q, highlight: q['n'] == widget.focus));
       (buckets[i] ?? []).forEach(textBlock);
     }
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Cap. ${ch['num']} – ${ch['title']}'),
-        actions: [IconButton(icon: const Icon(Icons.text_fields), onPressed: () => showSettings(context))],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.text_fields),
+              onPressed: () => showSettings(context))
+        ],
       ),
       body: SelectionArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Parte ${part['id']} – ${part['title']}', style: tt.labelLarge),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Parte ${part['id']} – ${part['title']}',
+                style: tt.labelLarge),
             const SizedBox(height: 4),
             Text('${ch['title']}', style: tt.headlineSmall),
             ExpansionTile(
@@ -578,6 +676,46 @@ class QuestionCard extends StatelessWidget {
   final J q;
   final bool highlight;
 
+  String _questionText() {
+    final sections = <String>['${q['n']}. ${q['q']}', '${q['a']}'];
+    sections.addAll((q['c'] as List).cast<String>());
+    sections.addAll((q['notes'] as List).cast<String>());
+    return sections.where((text) => text.trim().isNotEmpty).join('\n\n');
+  }
+
+  void _showActions(BuildContext context) {
+    final text = _questionText();
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(children: [
+          ListTile(
+            leading: const Icon(Icons.copy),
+            title: const Text('Copiar'),
+            onTap: () async {
+              Navigator.pop(sheetContext);
+              await Clipboard.setData(ClipboardData(text: text));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Pergunta e resposta copiadas')),
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('Compartilhar'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              Share.share(text,
+                  subject: 'O Livro dos Espíritos - Pergunta ${q['n']}');
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -589,16 +727,33 @@ class QuestionCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${q['n']}.', style: tt.titleMedium?.copyWith(color: cs.primary, fontWeight: FontWeight.bold)),
+            Text('${q['n']}.',
+                style: tt.titleMedium
+                    ?.copyWith(color: cs.primary, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
-            Expanded(child: Text('${q['q']}', style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontStyle: FontStyle.italic))),
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onLongPress: () => _showActions(context),
+                child: Text('${q['q']}',
+                    style: tt.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic)),
+              ),
+            ),
           ]),
           const SizedBox(height: 8),
           Text('${q['a']}', style: tt.bodyLarge?.copyWith(height: 1.5)),
           for (final c in (q['c'] as List))
-            Padding(padding: const EdgeInsets.only(top: 8), child: Text('$c', style: tt.bodyMedium?.copyWith(height: 1.5))),
+            Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('$c', style: tt.bodyMedium?.copyWith(height: 1.5))),
           for (final n in (q['notes'] as List))
-            Padding(padding: const EdgeInsets.only(top: 8), child: Text('$n', style: tt.bodySmall?.copyWith(fontStyle: FontStyle.italic))),
+            Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('$n',
+                    style:
+                        tt.bodySmall?.copyWith(fontStyle: FontStyle.italic))),
         ]),
       ),
     );
@@ -608,7 +763,11 @@ class QuestionCard extends StatelessWidget {
 // ---------- introdução, conclusão etc. ----------
 
 class SectionPage extends StatefulWidget {
-  const SectionPage({super.key, required this.book, required this.sectionKey, this.focusLabel});
+  const SectionPage(
+      {super.key,
+      required this.book,
+      required this.sectionKey,
+      this.focusLabel});
   final Book book;
   final String sectionKey;
   final String? focusLabel;
@@ -622,7 +781,8 @@ class _SectionPageState extends State<SectionPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.focusLabel != null) scrollTo(_keys.putIfAbsent(widget.focusLabel!, () => GlobalKey()));
+    if (widget.focusLabel != null)
+      scrollTo(_keys.putIfAbsent(widget.focusLabel!, () => GlobalKey()));
   }
 
   @override
@@ -633,23 +793,37 @@ class _SectionPageState extends State<SectionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(sectionNames[widget.sectionKey]!),
-        actions: [IconButton(icon: const Icon(Icons.text_fields), onPressed: () => showSettings(context))],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.text_fields),
+              onPressed: () => showSettings(context))
+        ],
       ),
       body: SelectionArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             for (final it in items) ...[
               if ((it['label'] as String).isNotEmpty)
                 Padding(
-                  key: _keys.putIfAbsent(it['label'] as String, () => GlobalKey()),
+                  key: _keys.putIfAbsent(
+                      it['label'] as String, () => GlobalKey()),
                   padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
-                  child: Text(it['label'] as String, style: tt.titleLarge?.copyWith(color: cs.primary)),
+                  child: Text(it['label'] as String,
+                      style: tt.titleLarge?.copyWith(color: cs.primary)),
                 ),
               for (final p in (it['p'] as List))
-                Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text('$p', style: tt.bodyLarge?.copyWith(height: 1.5))),
+                Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child:
+                        Text('$p', style: tt.bodyLarge?.copyWith(height: 1.5))),
               for (final n in (it['notes'] as List))
-                Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text('$n', style: tt.bodySmall?.copyWith(fontStyle: FontStyle.italic))),
+                Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text('$n',
+                        style: tt.bodySmall
+                            ?.copyWith(fontStyle: FontStyle.italic))),
             ],
           ]),
         ),
