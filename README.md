@@ -4,7 +4,7 @@ Aplicativo Android para leitura e busca em *O Livro dos Espíritos*, de Allan Ka
 
 ## Baixar o APK
 
-[**Última versão (releases/latest)**](https://github.com/queirozsume/kardecEspiritos/releases/latest)
+[**Última versão (releases/latest)**](https://github.com/queirozsume/kardecEspiritos/releases/latest) ou o arquivo [apk/livro-dos-espiritos.apk](apk/livro-dos-espiritos.apk), que sempre contém apenas a versão atual.
 
 O APK é compilado e assinado pelo GitHub Actions a partir deste repositório. Para conferir a autenticidade:
 
