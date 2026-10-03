@@ -1,0 +1,7 @@
+*.pdf
+raw.txt
+/data.json
+__pycache__/
+*.jks
+*.keystore
+key.properties
