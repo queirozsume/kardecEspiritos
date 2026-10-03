@@ -66,7 +66,7 @@ class _AppState extends State<App> {
           if (!snap.hasData) {
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          return Home(book: snap.data!);
+          return CoverGate(book: snap.data!);
         },
       ),
     ));
@@ -123,6 +123,8 @@ void showSettings(BuildContext context) {
                 SelectableText('GitHub: github.com/queirozsume/kardecEspiritos'),
                 SizedBox(height: 8),
                 SelectableText('SHA-256 do certificado:\n$certSha256'),
+                SizedBox(height: 8),
+                Text('Retrato: Bibliothèque nationale de France, domínio público.'),
               ],
             ),
           ),
@@ -173,6 +175,58 @@ Widget refChip(BuildContext context, Book b, List r) {
           onPressed: () => openSection(context, b, r[1] as String, label: r[2] == '' ? null : r[2] as String));
     default:
       return Chip(label: Text('${r[1]}'));
+  }
+}
+
+// ---------- capa ----------
+
+class CoverGate extends StatefulWidget {
+  const CoverGate({super.key, required this.book});
+  final Book book;
+  @override
+  State<CoverGate> createState() => _CoverGateState();
+}
+
+class _CoverGateState extends State<CoverGate> {
+  bool open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (open) return Home(book: widget.book);
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E1830),
+      body: SafeArea(
+        child: InkWell(
+          onTap: () => setState(() => open = true),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(children: [
+              const SizedBox(height: 8),
+              const Text('O LIVRO DOS',
+                  style: TextStyle(color: Color(0xFFE8D9A8), fontSize: 20, letterSpacing: 6)),
+              const Text('ESPÍRITOS',
+                  style: TextStyle(
+                      color: Color(0xFFE8D9A8), fontSize: 40, fontWeight: FontWeight.bold, letterSpacing: 4)),
+              const SizedBox(height: 20),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFE8D9A8), width: 2),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 16)],
+                  ),
+                  child: Image.asset('assets/kardec.jpg', fit: BoxFit.cover, alignment: Alignment.topCenter, width: double.infinity),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text('Allan Kardec',
+                  style: TextStyle(color: Color(0xFFE8D9A8), fontSize: 22, fontStyle: FontStyle.italic)),
+              const SizedBox(height: 12),
+              const Text('Toque para abrir', style: TextStyle(color: Colors.white54, fontSize: 13)),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
 

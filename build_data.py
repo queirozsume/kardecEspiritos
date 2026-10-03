@@ -406,6 +406,32 @@ def parse_refs(s):
     return refs
 
 
+def keep_kardec_notes(notes):
+    """Descarta notas da editora ('N.E.') e os fragmentos que as continuam."""
+    out, keep = [], True
+    for n in notes:
+        if n.startswith('N.E.'):
+            keep = False
+        elif n.startswith('Nota de Allan Kardec'):
+            keep = True
+        if keep and n.strip():
+            out.append(n)
+    return out
+
+
+def strip_editorial_notes(data):
+    for q in data['questions']:
+        q['notes'] = keep_kardec_notes(q['notes'])
+    for t in data['texts']:
+        t['notes'] = keep_kardec_notes(t['notes'])
+    for ch in (c for p in data['parts'] for c in p['chapters']):
+        for t in ch.get('texts', []):
+            t['notes'] = keep_kardec_notes(t['notes'])
+    for items in data['sections'].values():
+        for it in items:
+            it['notes'] = keep_kardec_notes(it['notes'])
+
+
 if __name__ == '__main__':
     c = Collector()
     c.pending_part_title = ''
@@ -430,11 +456,11 @@ if __name__ == '__main__':
         'introd': parse_free(intro_start, proleg_start - 1),
         'proleg': parse_free(proleg_start, BODY_FIRST - 1, False),
         'concl': parse_free(concl_start, nota_start - 1),
-        'nota': parse_free(nota_start, index_start - 1, False),
     }
     last_index = max(pi for pi in range(index_start, len(d)) if 'Índice geral' in d[pi].get_text()[:40] or 'ÍNDICE GERAL' in d[pi].get_text()[:40])
     index = parse_index(index_start, last_index)
     print('index end page idx', last_index, 'entries', len(index))
     data = {'parts': c.parts, 'questions': qs, 'sections': sections, 'index': index,
             'texts': [{'chapter': ch['id'], **t} for p in c.parts for ch in p['chapters'] for t in ch.get('texts', [])]}
+    strip_editorial_notes(data)
     json.dump(data, open('data.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)

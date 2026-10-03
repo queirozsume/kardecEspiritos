@@ -7,7 +7,6 @@ const sectionNames = {
   'introd': 'Introdução',
   'proleg': 'Prolegômenos',
   'concl': 'Conclusão',
-  'nota': 'Nota explicativa',
 };
 
 /// Minúsculas e sem acentos, para busca.
