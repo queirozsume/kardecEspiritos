@@ -1,8 +1,10 @@
-name: Release APK
+name: Build APK
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,13 +13,13 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: microsoft
           java-version: '17'
@@ -36,10 +38,16 @@ jobs:
       - run: flutter build apk --release
       - name: Renomear APK
         run: cp build/app/outputs/flutter-apk/app-release.apk livro-dos-espiritos-${{ github.ref_name }}.apk
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/upload-artifact@v5
+        with:
+          name: apk
+          path: app/livro-dos-espiritos-${{ github.ref_name }}.apk
+      - uses: actions/attest-build-provenance@v3
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           subject-path: app/livro-dos-espiritos-${{ github.ref_name }}.apk
       - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${{ github.ref_name }}" "livro-dos-espiritos-${{ github.ref_name }}.apk" --title "${{ github.ref_name }}" --generate-notes
