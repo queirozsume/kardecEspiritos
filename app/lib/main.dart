@@ -116,7 +116,7 @@ void showSettings(BuildContext context) {
             onTap: () => showAboutDialog(
               context: context,
               applicationName: 'O Livro dos Espíritos',
-              applicationVersion: '1.0.0',
+              applicationVersion: '1.0.1',
               applicationLegalese: 'Desenvolvido por $developerName',
               children: const [
                 SizedBox(height: 12),
